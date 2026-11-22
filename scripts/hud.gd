@@ -90,4 +90,4 @@ func update(g) -> void:
 	stars.flashing = g.bust_t > 0.03
 	bust_bg.visible = g.bust_t > 0.03
 	if bust_bg.visible:
-		bust_fill.size.x = bust_bg.size.x * clampf(g.bust_t / 1.15, 0.0, 1.0)
+		bust_fill.size = Vector2(bust_bg.custom_minimum_size.x * clampf(g.bust_t / 1.15, 0.0, 1.0), 7)
