@@ -56,6 +56,10 @@ var ped_plots: Array = []
 var snd := {}
 var engine_player: AudioStreamPlayer
 var siren_player: AudioStreamPlayer
+var music_player: AudioStreamPlayer
+var radio_player: AudioStreamPlayer
+var _prev_stars := 0
+var _music_wanted := true
 
 
 func _ready() -> void:
@@ -631,9 +635,13 @@ func _update_heat(delta: float) -> void:
 		if p.active and not p.leaving:
 			nearest = minf(nearest, p.position.distance_to(focus_pos()))
 	heat = maxf(0.0, heat - delta * (0.012 if nearest < 300 else 0.08))
+	if _prev_stars > 0 and stars == 0:
+		_play_dispatch("lost")
+	_prev_stars = stars
 	if nearest < 43 and focus_speed < 26:
 		bust_t += delta * (1.0 if driving else 1.7)
 		if bust_t >= 1.15:
+			_play_dispatch("busted")
 			end_round(false, "BUSTED", "The harbor police took the case at the quay. Odessa made one call — you walked. Barely.")
 			return
 	else:
@@ -687,6 +695,7 @@ func _process(delta: float) -> void:
 				siren_player.play()
 		else:
 			siren_player.stop()
+	_update_music()
 	hud.update(self)
 
 
@@ -726,6 +735,39 @@ func _setup_audio() -> void:
 	siren_player.bus = "Radio"
 	siren_player.volume_db = -40.0
 	add_child(siren_player)
+	music_player = AudioStreamPlayer.new()
+	music_player.bus = "Master"
+	music_player.volume_db = -18.0
+	if ResourceLoader.exists("res://assets/music/title_theme.wav"):
+		music_player.stream = load("res://assets/music/title_theme.wav")
+		music_player.stream.loop_mode = AudioStreamWAV.LOOP_FORWARD
+		music_player.stream.loop_begin = 0
+		music_player.stream.loop_end = int(float(music_player.stream.data.size()) / 4.0)
+		music_player.play()
+	radio_player = AudioStreamPlayer.new()
+	radio_player.bus = "Master"
+	radio_player.volume_db = -22.0
+	if ResourceLoader.exists("res://assets/music/radio_bed.wav"):
+		radio_player.stream = load("res://assets/music/radio_bed.wav")
+		radio_player.stream.loop_mode = AudioStreamWAV.LOOP_FORWARD
+		radio_player.stream.loop_begin = 0
+		radio_player.stream.loop_end = int(float(radio_player.stream.data.size()) / 4.0)
+	add_child(radio_player)
+
+
+func _update_music() -> void:
+	var want_radio := driving and state == "playing"
+	if radio_player and radio_player.stream:
+		if want_radio and not radio_player.playing:
+			radio_player.play()
+		if not want_radio and radio_player.playing:
+			radio_player.stop()
+	if music_player and music_player.stream:
+		var want_theme := state in ["title", "story", "over"]
+		if want_theme and not music_player.playing:
+			music_player.play()
+		if not want_theme and music_player.playing:
+			music_player.stop()
 
 
 func _play_one_shot(name: String) -> void:

@@ -10,6 +10,8 @@ var game = null
 var t := 0.0
 var keys: Array = []
 var holds: Array = []
+var last_state := ""
+var seeded_dbg := false
 var shots: Array = []
 var quit_at := 1e9
 var _taps: Array = []
@@ -46,15 +48,17 @@ func _process(delta: float) -> void:
 		game = get_tree().get_first_node_in_group("game")
 		if game == null:
 			return
-		if args.has("dbg"):
-			game.apply_debug(String(args["dbg"]))
-		if args.has("seed"):
-			game.set_seed(int(args["seed"]))
 	t += delta
+	if args.has("dbg") and game.state == "playing" and last_state != "playing":
+		game.apply_debug(String(args["dbg"]))
+	last_state = game.state
+	if args.has("seed") and game.state == "title" and not seeded_dbg:
+		seeded_dbg = true
+		game.set_seed(int(args["seed"]))
 	while keys.size() > 0 and keys[0][0] <= t:
-		var action: StringName = keys.pop_front()[1]
-		Input.action_press(action)
-		_taps.append([t + 0.18, action])
+		var tap: StringName = keys.pop_front()[1]
+		Input.action_press(tap)
+		_taps.append([t + 0.18, tap])
 	while _taps.size() > 0 and _taps[0][0] <= t:
 		Input.action_release(_taps.pop_front()[1])
 	for h in holds:

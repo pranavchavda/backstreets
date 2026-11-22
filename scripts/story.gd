@@ -116,4 +116,6 @@ func advance() -> void:
 		visible = false
 		game.start_round()
 		return
+	if idx == 2:
+		game._play_dispatch("odessa")
 	_show()
