@@ -74,3 +74,7 @@ godot --path . --resolution 1280x720 -- --keys="2:action,..." --holds="move_left
   must read state in `_process`. `apply_debug` must run on transitions into
   `playing` (start_round resets it). Story needs a 0.5 s open-cooldown so the
   opening press doesn't eat panel 1.
+## Upstream
+
+Public repo: https://github.com/pranavchavda/backstreets (created 2026-11-22).
+Push only with user approval.
